@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<style>
+  .view {
+    fill: blue;
+    stroke: #000;
+  }
+</style>
+
+<h3>d3 v4 Zoom Experimentation</h3>
+<p>
+  Call zoom.translateBy, zoom.scaleBy and zoom.scaleTo on rect element. Then
+  reset using d3.zoomIdentity.
+</p>
+
+<svg width="1200" height="500">
+  <g id="container">
+    <rect width="1200" height="600" fill="rgba(255, 0, 0, 0.5)"></rect>
+    <g id="pane">
+      <circle cx="100" cy="100" r="50" fill="rgba(255, 255, 0, 1)"></circle>
+    </g>
+  </g>
+  <g id="minimap" transform="translate(800, 340)">
+    <rect
+      width="300"
+      height="150"
+      stroke="rgba(255, 255, 0, 1)"
+      stroke-width="3"
+    ></rect>
+    <g id="mini-pane">
+      <circle cx="25" cy="25" r="12" fill="rgba(255, 0, 255,1)"></circle>
+    </g>
+  </g>
+</svg>
+
+<script src="d3.min.js"></script>
+
+<script>
+  var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+  const scale = 0.25;
+
+  var zoom = d3.zoom().on("zoom start", zoomStart).on("zoom", zoomed);
+  var zoom1 = d3.zoom().on("zoom", zoomed1);
+  d3.select("#container").call(zoom);
+  d3.select("#minimap").call(zoom1);
+
+  function zoomStart() {
+    // console.log("zoom start");
+    // const t = d3.zoomTransform(d3.select("#mini-pane").node());
+    // d3.select("#pane").attr("transform", t);
+    d3.select("#container").call(
+      zoom.transform,
+      d3.zoomIdentity,
+      d3.zoomTransform(d3.select("#mini-pane").node()).invert([width / 2, height / 2])
+    );
+  }
+  function zoomed() {
+    // const t = d3.zoomTransform(d3.select("#mini-pane").node());
+    const { x, y, k } = d3.event.transform;
+    d3.select("#pane").attr("transform", d3.event.transform);
+    // d3.select("#mini-pane").attr("transform", `translate(${x * scale}, ${y * scale})scale(${k})`);
+  }
+  function zoomed1() {
+    //below is actually applying the transform, comment it out and observe!!
+
+    d3.select("#pane").attr("transform", d3.event.transform);
+    d3.select("#mini-pane").attr("transform", d3.event.transform);
+  }
+</script>
+<!-- // setTimeout(function() {
+  //   view.transition().duration(1000).call(zoom.translateBy, 200, 100);
+  //   //Note: calling below would do same as above without transtiion
+  //   //zoom.translateBy(view, 200, 100);
+  // }, 2000);
+
+  // setTimeout(function() {
+  //   view.transition().duration(1000).call(zoom.scaleBy, 2);
+  //   //Note: calling below would do same as above without transtiion
+  //   //zoom.scaleBy(view, 2);
+  // }, 4000);
+
+  // setTimeout(function() {
+  //   view.transition().duration(1000).call(zoom.scaleTo, .5);
+  //   //Note: calling below would do same as above without transtiion
+  //   //zoom.scaleTo(view, .5);
+  // }, 6000);
+
+  // setTimeout(function() {
+  //   view.transition().duration(1000).call(zoom.transform, d3.zoomIdentity);
+  // }, 8000); -->

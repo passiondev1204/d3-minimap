@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<button name="in" type="button" onclick="zoomIn()">Zoom In</button>
+<button name="out" type="button" onclick="zoomOut()">Zoom Out</button>
+<button name="random" type="button" onclick="random()">Random</button>
+<button name="reset" type="button" onclick="reset()">Reset</button>
+<svg width="800" height="500"></svg>
+<script src="d3.min.js"></script>
+
+<script>
+  const theta = Math.PI * (3 - Math.sqrt(5));
+  const radius = 3,
+    width = 800,
+    height = 500,
+    step = radius * 2;
+  const data = Array.from({ length: 2000 }, (_, i) => {
+    const radius = step * Math.sqrt((i += 0.5)),
+      a = theta * i;
+    return [
+      width / 2 + radius * Math.cos(a),
+      height / 2 + radius * Math.sin(a),
+    ];
+  });
+
+  const zoom = d3.zoom().scaleExtent([1, 40]).on("zoom", zoomed);
+
+  const svg = d3.select("svg").on("click", reset);
+
+  const g = svg.append("g");
+
+  g.selectAll("circle")
+    .data(data)
+    .join("circle")
+    .attr("cx", ([x]) => x)
+    .attr("cy", ([, y]) => y)
+    .attr("r", radius)
+    .attr("fill", (d, i) => d3.interpolateRainbow(i / 360))
+    .on("click", clicked);
+
+  svg.call(zoom);
+
+  function random() {
+    const [x, y] = data[Math.floor(Math.random() * data.length)];
+    svg
+      .transition()
+      .duration(2500)
+      .call(
+        zoom.transform,
+        d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(40)
+          .translate(-x, -y)
+      );
+  }
+
+  function reset() {
+    svg
+      .transition()
+      .duration(750)
+      .call(
+        zoom.transform,
+        d3.zoomIdentity,
+        d3.zoomTransform(svg.node()).invert([0, 0])
+      );
+  }
+
+  function clicked([x, y]) {
+    d3.event.stopPropagation();
+    svg
+      .transition()
+      .duration(750)
+      .call(
+        zoom.transform,
+        d3.zoomIdentity
+          .translate(width / 2, height / 2)
+          .scale(40)
+          .translate(-x, -y),
+        d3.mouse(svg.node())
+      );
+  }
+
+  function zoomed() {
+    g.attr("transform", d3.event.transform);
+  }
+
+  function zoomIn() {
+    svg.transition().call(zoom.scaleBy, 2);
+  }
+
+  function zoomOut() {
+    svg.transition().call(zoom.scaleBy, 0.5);
+  }
+</script>
